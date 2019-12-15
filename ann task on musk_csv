@@ -1,0 +1,95 @@
+# artificial neural networks
+
+import pandas as pd
+data = pd.read_csv('musk_csv.csv')
+
+x = data.iloc[:,3:-1].values
+y = data.iloc[:,-1].values
+
+
+
+# split
+from sklearn.model_selection import train_test_split
+x_train , x_test,y_train,y_test = train_test_split(x,y,test_size = 0.2,random_state=0 )
+
+#Scaling
+from sklearn.preprocessing import StandardScaler
+sc = StandardScaler()
+x_train = sc.fit_transform(x_train)
+x_test= sc.transform(x_test)
+
+# making ann
+import keras
+from keras.models import Sequential
+from keras.layers import Dense
+classifier = Sequential()
+
+# adding hidden and output layers
+classifier.add(Dense(160 ,kernel_initializer ='uniform',activation='relu',input_dim = 166))
+classifier.add(Dense(160 ,kernel_initializer ='random_uniform',activation='relu'))
+classifier.add(Dense(160,kernel_initializer ='random_uniform',activation='relu'))
+classifier.add(Dense(1 ,kernel_initializer ='random_uniform',activation='hard_sigmoid'))
+
+
+classifier.compile(optimizer = 'adam',loss = 'binary_crossentropy' , metrics=['accuracy']) 
+
+graph = classifier.fit(x_train,y_train, validation_data=(x_test , y_test),
+                       batch_size=30, epochs=100, verbose=0)
+
+_, train_acc = classifier.evaluate(x_train, y_train)
+_, test_acc = classifier.evaluate(x_test , y_test)
+
+graph.history['loss']
+graph.history['accuracy']
+graph.history['val_accuracy']
+
+import matplotlib.pyplot as plt
+
+
+# calculating accuracy
+y_pred = classifier.predict(x_test , verbose=0)
+y_pred = (y_pred>0.5)
+y_class = classifier.predict_classes(x_test , verbose=0)
+
+from sklearn.metrics import confusion_matrix , accuracy_score ,precision_score ,recall_score
+from sklearn.metrics import f1_score,roc_auc_score
+
+cm = confusion_matrix(y_test , y_pred)
+
+AC =accuracy_score(y_test , y_pred)
+
+precision = precision_score(y_test , y_pred)
+
+recall = recall_score(y_test , y_pred)
+
+f1 = f1_score(y_test , y_pred)
+
+auc = roc_auc_score(y_test , y_pred)
+
+my_keys = graph.history.keys()
+
+# summarize history for accuracy
+plt.plot(graph.history['accuracy'])
+plt.plot(graph.history['val_accuracy'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+# summarize history for loss
+plt.plot(graph.history['loss'])
+plt.plot(graph.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+
+
+
+
+
+
+
+
